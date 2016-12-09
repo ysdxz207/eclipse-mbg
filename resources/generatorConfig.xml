@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+  PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+  "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+<generatorConfiguration>
+	<classPathEntry location="D:\javaDir\java\apache-maven-3.3.9\repository\mysql\mysql-connector-java\5.1.30\mysql-connector-java-5.1.30.jar" />
+
+	<context id="DB2Tables" targetRuntime="MyBatis3">
+		<jdbcConnection driverClass="com.mysql.jdbc.Driver"
+			connectionURL="jdbc:mysql://localhost:3306/testdb" userId="root"
+			password="root">
+		</jdbcConnection>
+
+		<javaTypeResolver>
+			<property name="forceBigDecimals" value="false" />
+		</javaTypeResolver>
+
+		<javaModelGenerator targetPackage="test.model"
+			targetProject="\MBGTestProject\src">
+			<property name="enableSubPackages" value="true" />
+			<property name="trimStrings" value="true" />
+		</javaModelGenerator>
+
+		<sqlMapGenerator targetPackage="test.xml"
+			targetProject="\MBGTestProject\src">
+			<property name="enableSubPackages" value="true" />
+		</sqlMapGenerator>
+
+		<javaClientGenerator type="XMLMAPPER"
+			targetPackage="test.dao" targetProject="\MBGTestProject\src">
+			<property name="enableSubPackages" value="true" />
+		</javaClientGenerator>
+
+		<table schema="testdb" tableName="my_table" domainObjectName="MyTable"
+			enableCountByExample="false" enableUpdateByExample="false"
+			enableDeleteByExample="false" enableSelectByExample="false"
+			selectByExampleQueryId="false">
+			<generatedKey column="id" sqlStatement="MySql" identity="true" />
+		</table>
+
+	</context>
+</generatorConfiguration>
