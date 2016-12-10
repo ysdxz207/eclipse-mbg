@@ -96,7 +96,8 @@ public class GeneratorConfView extends ViewPart {
 		
 		private void init() throws IllegalAccessException, InvocationTargetException{
 			
-			configObjectList = Constant.configList.size() == 0 ? GeneratorConfUtil.refreshConfigs() : Constant.configList;
+			configObjectList = Constant.configList == null || Constant.configList.size() == 0 ? GeneratorConfUtil.refreshConfigs() : Constant.configList;
+			System.out.println();
 		}
 		
 	}

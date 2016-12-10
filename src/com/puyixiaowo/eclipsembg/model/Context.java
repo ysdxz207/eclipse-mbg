@@ -2,7 +2,7 @@ package com.puyixiaowo.eclipsembg.model;
 
 import java.util.List;
 
-public class Context extends BaseBean{
+public class Context extends BaseBean {
 	private List<Plugin> plugins;
 	private JdbcConnection jdbcConnection;
 	private JavaTypeResolver javaTypeResolver;
@@ -10,6 +10,9 @@ public class Context extends BaseBean{
 	private SqlMapGenerator sqlMapGenerator;
 	private JavaClientGenerator javaClientGenerator;
 	private List<Table> tables;
+
+	public Context() {
+	}
 
 	public Context(List<Attribute> attributes) {
 		this.setAttributes(attributes);

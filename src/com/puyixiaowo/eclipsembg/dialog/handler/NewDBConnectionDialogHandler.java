@@ -25,7 +25,8 @@ import com.puyixiaowo.eclipsembg.conf.Constant;
 import com.puyixiaowo.eclipsembg.conf.GeneratorConfig;
 import com.puyixiaowo.eclipsembg.enums.JdbcConnectionEnum;
 import com.puyixiaowo.eclipsembg.model.Attribute;
-import com.puyixiaowo.eclipsembg.model.ClassPathEntry;
+import com.puyixiaowo.eclipsembg.model.Context;
+import com.puyixiaowo.eclipsembg.model.JdbcConnection;
 import com.puyixiaowo.eclipsembg.util.GeneratorConfUtil;
 
 public class NewDBConnectionDialogHandler {
@@ -198,7 +199,9 @@ public class NewDBConnectionDialogHandler {
 	 * create jdbc connection
 	 */
 	protected void createJDBCConnection() {
-		testJDBCConnection(false);
+		if (!testJDBCConnection(false)) {
+			return;
+		}
 		//save config info to generatorConfig.xml
 		GeneratorConfig generatorConfig = new GeneratorConfig();
 		List<Attribute> attributes = new ArrayList<Attribute>();
@@ -207,10 +210,12 @@ public class NewDBConnectionDialogHandler {
 		attributes.add(new Attribute(JdbcConnectionEnum.USER_ID.name, config.getUserId()));
 		attributes.add(new Attribute(JdbcConnectionEnum.PASSWORD.name, config.getPassword()));
 		
-		ClassPathEntry classPathEntry = new ClassPathEntry(attributes);
-		generatorConfig.setClassPathEntry(classPathEntry);
-		
+		JdbcConnection jdbcConnection = new JdbcConnection(attributes);
+		Context context = new Context();
+		context.setJdbcConnection(jdbcConnection);
+		generatorConfig.setContext(context);
 		GeneratorConfUtil.updateDefaultConfigFile(generatorConfig);
+		shell.dispose();//close shell
 	}
 	/**
 	 * 
