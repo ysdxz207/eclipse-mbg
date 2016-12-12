@@ -8,25 +8,24 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.dom4j.DocumentException;
 import org.yong.util.file.xml.XMLObject;
 import org.yong.util.file.xml.XMLParser;
 
-import com.puyixiaowo.eclipsembg.conf.Constant;
-import com.puyixiaowo.eclipsembg.conf.GeneratorConfig;
+import com.puyixiaowo.eclipsembg.constants.Constant;
 import com.puyixiaowo.eclipsembg.enums.TableEnum;
-import com.puyixiaowo.eclipsembg.model.Attribute;
 import com.puyixiaowo.eclipsembg.model.ClassPathEntry;
 import com.puyixiaowo.eclipsembg.model.Context;
+import com.puyixiaowo.eclipsembg.model.GeneratorConfig;
 import com.puyixiaowo.eclipsembg.model.JavaClientGenerator;
 import com.puyixiaowo.eclipsembg.model.JavaModelGenerator;
 import com.puyixiaowo.eclipsembg.model.JavaTypeResolver;
 import com.puyixiaowo.eclipsembg.model.JdbcConnection;
 import com.puyixiaowo.eclipsembg.model.SqlMapGenerator;
 import com.puyixiaowo.eclipsembg.model.Table;
-import com.puyixiaowo.eclipsembg.views.EclipsembgView;
 
 public class GeneratorConfUtil {
 	/**
@@ -37,7 +36,7 @@ public class GeneratorConfUtil {
 	public static File generateDefaultConfFile() {
 
 		try {
-			InputStream input = EclipsembgView.class.getResourceAsStream("/resources/generatorConfig.xml");
+			InputStream input = GeneratorConfUtil.class.getResourceAsStream("/resources/generatorConfig.xml");
 			File file = new File(Constant.DEFAULT_CONFIG_FILE);
 			if (!file.exists()) {
 				file.getParentFile().mkdirs();
@@ -46,7 +45,7 @@ public class GeneratorConfUtil {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				FileUtil.inputstreamToFile(input, file);
+				FileUtil.generateFileByInputStream(input, file);
 			}
 			return file;
 		} catch (Exception e) {
@@ -96,34 +95,34 @@ public class GeneratorConfUtil {
 			XMLObject root = parser.parse();
 			// classPathEntry
 			XMLObject classPathEntryObj = root.getChildTag("classPathEntry", 0);
-			ClassPathEntry classPathEntry = new ClassPathEntry(parseAttributes(classPathEntryObj));
+			ClassPathEntry classPathEntry = new ClassPathEntry(parseProperties(classPathEntryObj));
 			// context
 			XMLObject contextObj = root.getChildTag("context", 0);
-			Context context = new Context(parseAttributes(contextObj));
+			Context context = new Context(parseProperties(contextObj));
 
 			// jdbcConnection
 			XMLObject jdbcConnectionObj = contextObj.getChildTag("jdbcConnection", 0);
-			JdbcConnection jdbcConnection = new JdbcConnection(parseAttributes(jdbcConnectionObj));
+			JdbcConnection jdbcConnection = new JdbcConnection(parseProperties(jdbcConnectionObj));
 			context.setJdbcConnection(jdbcConnection);
 
 			// javaTypeResolver
 			XMLObject javaTypeResolverObj = contextObj.getChildTag("javaTypeResolver", 0);
-			JavaTypeResolver javaTypeResolver = new JavaTypeResolver(parseAttributes(javaTypeResolverObj));
+			JavaTypeResolver javaTypeResolver = new JavaTypeResolver(parseProperties(javaTypeResolverObj));
 			context.setJavaTypeResolver(javaTypeResolver);
 
 			// javaModelGenerator
 			XMLObject javaModelGeneratorObj = contextObj.getChildTag("javaModelGenerator", 0);
-			JavaModelGenerator javaModelGenerator = new JavaModelGenerator(parseAttributes(javaModelGeneratorObj));
+			JavaModelGenerator javaModelGenerator = new JavaModelGenerator(parseProperties(javaModelGeneratorObj));
 			context.setJavaModelGenerator(javaModelGenerator);
 
 			// sqlMapGenerator
 			XMLObject sqlMapGeneratorObj = contextObj.getChildTag("sqlMapGenerator", 0);
-			SqlMapGenerator sqlMapGenerator = new SqlMapGenerator(parseAttributes(sqlMapGeneratorObj));
+			SqlMapGenerator sqlMapGenerator = new SqlMapGenerator(parseProperties(sqlMapGeneratorObj));
 			context.setSqlMapGenerator(sqlMapGenerator);
 
 			// javaClientGenerator
 			XMLObject javaClientGeneratorObj = contextObj.getChildTag("javaClientGenerator", 0);
-			JavaClientGenerator javaClientGenerator = new JavaClientGenerator(parseAttributes(javaClientGeneratorObj));
+			JavaClientGenerator javaClientGenerator = new JavaClientGenerator(parseProperties(javaClientGeneratorObj));
 			context.setJavaClientGenerator(javaClientGenerator);
 
 			// table
@@ -131,7 +130,7 @@ public class GeneratorConfUtil {
 			List<XMLObject> tableObjList = contextObj.getAllChildTags("table");
 			for (int i = 0; i < tableObjList.size(); i++) {
 				XMLObject tableObj = tableObjList.get(i);
-				Table table = new Table(parseAttributes(tableObj), i);
+				Table table = new Table(parseProperties(tableObj), i);
 				tables.add(table);
 			}
 			context.setTables(tables);
@@ -155,7 +154,7 @@ public class GeneratorConfUtil {
 	public static List<GeneratorConfig> refreshConfigs() {
 		Constant.configList = getGeneratorConfigs();
 		for (GeneratorConfig generatorConfig : Constant.configList) {
-			if (generatorConfig.getFileName().equals("generatorConfig.xml")) {
+			if (generatorConfig.getFileName().equals(Constant.DEFAULT_CONFIG_FILE_NAME)) {
 				Constant.defaultConfig = generatorConfig;
 				break;
 			}
@@ -167,14 +166,13 @@ public class GeneratorConfUtil {
 	 * 
 	 * @return
 	 */
-	private static List<Attribute> parseAttributes(XMLObject obj) {
-		List<Attribute> attributes = new ArrayList<Attribute>();
+	private static Properties parseProperties(XMLObject obj) {
+		Properties props = new Properties();
 		Map<String, String> attrMap = obj.getAttrs();
 		for (String key : attrMap.keySet()) {
-			Attribute attribute = new Attribute(key, attrMap.get(key));
-			attributes.add(attribute);
+			props.setProperty(key, attrMap.get(key));
 		}
-		return attributes;
+		return props;
 	}
 
 	/***
@@ -226,7 +224,7 @@ public class GeneratorConfUtil {
 			// classPathEntry
 			XMLObject classPathEntryObj = root.getChildTag("classPathEntry", 0);
 			if (defaultConfig.getClassPathEntry() != null) {
-				addAttributes(defaultConfig.getClassPathEntry().getAttributes(), classPathEntryObj);
+				addProperties(defaultConfig.getClassPathEntry().getProperties(), classPathEntryObj);
 			}
 
 			// context
@@ -235,35 +233,35 @@ public class GeneratorConfUtil {
 				saveParser(parser, root);//save file
 				return;
 			}
-			addAttributes(defaultConfig.getContext().getAttributes(), contextObj);
+			addProperties(defaultConfig.getContext().getProperties(), contextObj);
 
 			// jdbcConnection
 			XMLObject jdbcConnectionObj = contextObj.getChildTag("jdbcConnection", 0);
 			if (defaultConfig.getContext().getJdbcConnection() != null) {
-				addAttributes(defaultConfig.getContext().getJdbcConnection().getAttributes(), jdbcConnectionObj);
+				addProperties(defaultConfig.getContext().getJdbcConnection().getProperties(), jdbcConnectionObj);
 			}
 
 			// javaTypeResolver
 			XMLObject javaTypeResolverObj = contextObj.getChildTag("javaTypeResolver", 0);
 			if (defaultConfig.getContext().getJavaTypeResolver() != null) {
-				addAttributes(defaultConfig.getContext().getJavaTypeResolver().getAttributes(), javaTypeResolverObj);
+				addProperties(defaultConfig.getContext().getJavaTypeResolver().getProperties(), javaTypeResolverObj);
 			}
 
 			// javaModelGenerator
 			XMLObject javaModelGeneratorObj = contextObj.getChildTag("javaModelGenerator", 0);
 			if (defaultConfig.getContext().getJavaModelGenerator() != null) {
-				addAttributes(defaultConfig.getContext().getJavaModelGenerator().getAttributes(),
+				addProperties(defaultConfig.getContext().getJavaModelGenerator().getProperties(),
 						javaModelGeneratorObj);
 			}
 			// sqlMapGenerator
 			XMLObject sqlMapGeneratorObj = contextObj.getChildTag("sqlMapGenerator", 0);
 			if (defaultConfig.getContext().getSqlMapGenerator() != null) {
-				addAttributes(defaultConfig.getContext().getSqlMapGenerator().getAttributes(), sqlMapGeneratorObj);
+				addProperties(defaultConfig.getContext().getSqlMapGenerator().getProperties(), sqlMapGeneratorObj);
 			}
 			// javaClientGenerator
 			XMLObject javaClientGeneratorObj = contextObj.getChildTag("javaClientGenerator", 0);
 			if (defaultConfig.getContext().getJavaClientGenerator() != null) {
-				addAttributes(defaultConfig.getContext().getJavaClientGenerator().getAttributes(),
+				addProperties(defaultConfig.getContext().getJavaClientGenerator().getProperties(),
 						javaClientGeneratorObj);
 			}
 
@@ -282,8 +280,8 @@ public class GeneratorConfUtil {
 					Table table = defaultConfig.getContext().getTables().get(i);
 					
 					XMLObject tableObject = XMLParser.createNode(TableEnum.TAG_NAME.name, "",
-							attributesToMap(table.getAttributes()));
-					addAttributes(table.getAttributes(), tableObject);
+							attributesToMap(table.getProperties()));
+					addProperties(table.getProperties(), tableObject);
 					tableObject.insertAfter(contextObj);
 				}
 			}
@@ -305,11 +303,11 @@ public class GeneratorConfUtil {
 	 * @param attributes
 	 * @return
 	 */
-	private static Map<String, String> attributesToMap(List<Attribute> attributes) {
+	private static Map<String, String> attributesToMap(Properties properties) {
 		Map<String, String> map = new HashMap<String, String>();
 
-		for (Attribute attribute : attributes) {
-			map.put(attribute.getName(), attribute.getValue());
+		for (Object key : properties.keySet()) {
+			map.put(key.toString(), properties.getProperty(key.toString()));
 		}
 		return map;
 	}
@@ -320,12 +318,12 @@ public class GeneratorConfUtil {
 	 * @param attributes
 	 * @param xmlObj
 	 */
-	private static void addAttributes(List<Attribute> attributes, XMLObject xmlObj) {
-		if (attributes == null || attributes.size() == 0) {
+	private static void addProperties(Properties properties, XMLObject xmlObj) {
+		if (properties == null || properties.size() == 0) {
 			return;
 		}
-		for (Attribute attribute : attributes) {
-			xmlObj.addAttr(attribute.getName(), attribute.getValue());
+		for (Object key : properties.keySet()) {
+			xmlObj.addAttr(key.toString(), properties.getProperty(key.toString()));
 		}
 	}
 
@@ -333,7 +331,7 @@ public class GeneratorConfUtil {
 		File file = new File(
 				"D:/javaDir/java/eclipse-committers-neon-1a-win32-x86_64/eclipse/dropins/eclipse-mbg/generatorConfig.xml");
 		// GeneratorConfig config = parseConfig(file);
-		// System.out.println(config.getContext().getTables().get(0).getAttributes().get(0).getValue());
+		// System.out.println(config.getContext().getTables().get(0).getProperties().get(0).getValue());
 
 		/*
 		 * XMLParser parser = new XMLParser(file.getAbsolutePath()); try {

@@ -1,11 +1,15 @@
 package com.puyixiaowo.eclipsembg.model;
 
-import java.util.List;
+import java.util.Properties;
 
-public class JavaTypeResolver extends BaseBean{
+import org.mybatis.generator.config.PropertyHolder;
 
-	public JavaTypeResolver(List<Attribute> attributes) {
-		this.setAttributes(attributes);
+public class JavaTypeResolver extends PropertyHolder{
+
+	public JavaTypeResolver(Properties properties) {
+		for (Object key : properties.keySet()) {
+			this.addProperty(key.toString(), properties.getProperty(key.toString()));
+		}
 	}
-	
+
 }

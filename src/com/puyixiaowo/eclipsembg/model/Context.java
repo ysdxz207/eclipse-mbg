@@ -1,8 +1,11 @@
 package com.puyixiaowo.eclipsembg.model;
 
 import java.util.List;
+import java.util.Properties;
 
-public class Context extends BaseBean {
+import org.mybatis.generator.config.PropertyHolder;
+
+public class Context extends PropertyHolder {
 	private List<Plugin> plugins;
 	private JdbcConnection jdbcConnection;
 	private JavaTypeResolver javaTypeResolver;
@@ -14,9 +17,13 @@ public class Context extends BaseBean {
 	public Context() {
 	}
 
-	public Context(List<Attribute> attributes) {
-		this.setAttributes(attributes);
+
+	public Context(Properties properties) {
+		for (Object key : properties.keySet()) {
+			this.addProperty(key.toString(), properties.getProperty(key.toString()));
+		}
 	}
+
 
 	public List<Plugin> getPlugins() {
 		return plugins;

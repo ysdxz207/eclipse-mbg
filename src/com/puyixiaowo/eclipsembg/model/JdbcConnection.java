@@ -1,11 +1,15 @@
 package com.puyixiaowo.eclipsembg.model;
 
-import java.util.List;
+import java.util.Properties;
 
-public class JdbcConnection  extends BaseBean{
+import org.mybatis.generator.config.PropertyHolder;
 
-	public JdbcConnection(List<Attribute> attributes) {
-		this.setAttributes(attributes);
+public class JdbcConnection  extends PropertyHolder{
+
+	public JdbcConnection(Properties properties) {
+		for (Object key : properties.keySet()) {
+			this.addProperty(key.toString(), properties.getProperty(key.toString()));
+		}
 	}
-	
+
 }

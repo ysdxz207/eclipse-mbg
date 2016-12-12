@@ -13,7 +13,7 @@ public class FileUtil {
 	 * @param ins
 	 * @param file
 	 */
-	public static void inputstreamToFile(InputStream ins, File file) {
+	public static void generateFileByInputStream(InputStream ins, File file) {
 		try {
 			OutputStream os = new FileOutputStream(file);
 			int bytesRead = 0;

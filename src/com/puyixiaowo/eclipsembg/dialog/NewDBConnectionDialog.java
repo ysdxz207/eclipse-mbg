@@ -3,7 +3,7 @@ package com.puyixiaowo.eclipsembg.dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
-import com.puyixiaowo.eclipsembg.conf.Constant;
+import com.puyixiaowo.eclipsembg.constants.Constant;
 import com.puyixiaowo.eclipsembg.dialog.handler.NewDBConnectionDialogHandler;
 
 public class NewDBConnectionDialog extends MBGDialog{

@@ -1,10 +1,18 @@
 package com.puyixiaowo.eclipsembg.model;
 
-import java.util.List;
+import org.mybatis.generator.config.PropertyHolder;
 
-public class Plugin extends BaseBean{
+public class Plugin extends PropertyHolder {
 	private String type;
-	private List<Property> propertys;
+	private int pos;
+
+	public int getPos() {
+		return pos;
+	}
+
+	public void setPos(int pos) {
+		this.pos = pos;
+	}
 
 	public String getType() {
 		return type;
@@ -12,14 +20,6 @@ public class Plugin extends BaseBean{
 
 	public void setType(String type) {
 		this.type = type;
-	}
-
-	public List<Property> getPropertys() {
-		return propertys;
-	}
-
-	public void setPropertys(List<Property> propertys) {
-		this.propertys = propertys;
 	}
 
 }

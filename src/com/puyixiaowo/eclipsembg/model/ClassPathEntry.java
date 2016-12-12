@@ -1,8 +1,10 @@
 package com.puyixiaowo.eclipsembg.model;
 
-import java.util.List;
+import java.util.Properties;
 
-public class ClassPathEntry extends BaseBean{
+import org.mybatis.generator.config.PropertyHolder;
+
+public class ClassPathEntry extends PropertyHolder{
 	
 	
 	
@@ -10,7 +12,10 @@ public class ClassPathEntry extends BaseBean{
 		
 	}
 
-	public ClassPathEntry(List<Attribute> attributes) {
-		this.setAttributes(attributes);
+	public ClassPathEntry(Properties properties) {
+		for (Object key : properties.keySet()) {
+			this.addProperty(key.toString(), properties.getProperty(key.toString()));
+		}
 	}
+
 }

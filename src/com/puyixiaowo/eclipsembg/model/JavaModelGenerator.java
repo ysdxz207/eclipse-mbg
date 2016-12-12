@@ -1,11 +1,16 @@
 package com.puyixiaowo.eclipsembg.model;
 
-import java.util.List;
+import java.util.Properties;
 
-public class JavaModelGenerator  extends BaseBean{
+import org.mybatis.generator.config.PropertyHolder;
 
-	public JavaModelGenerator(List<Attribute> attributes) {
-		this.setAttributes(attributes);
+public class JavaModelGenerator  extends PropertyHolder{
+
+	public JavaModelGenerator(Properties properties) {
+		for (Object key : properties.keySet()) {
+			this.addProperty(key.toString(), properties.getProperty(key.toString()));
+		}
 	}
+
 
 }

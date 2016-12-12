@@ -1,6 +1,9 @@
 package com.puyixiaowo.eclipsembg.views;
 
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.action.Action;
@@ -16,12 +19,12 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IWorkbenchActionConstants;
@@ -29,10 +32,19 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.DrillDownAdapter;
 import org.eclipse.ui.part.ViewPart;
+import org.mybatis.generator.api.MyBatisGenerator;
+import org.mybatis.generator.config.Configuration;
+import org.mybatis.generator.config.Context;
+import org.mybatis.generator.config.ModelType;
+import org.mybatis.generator.exception.InvalidConfigurationException;
+import org.mybatis.generator.internal.DefaultShellCallback;
 
-import com.puyixiaowo.eclipsembg.dialog.MBGDialog;
+import com.puyixiaowo.eclipsembg.constants.Constant;
 import com.puyixiaowo.eclipsembg.dialog.NewDBConnectionDialog;
+import com.puyixiaowo.eclipsembg.model.GeneratorConfig;
+import com.puyixiaowo.eclipsembg.util.DBUtil;
 import com.puyixiaowo.eclipsembg.util.GeneratorConfUtil;
+import com.puyixiaowo.eclipsembg.util.JDBCUtil;
 
 /**
  * This sample class demonstrates how to plug-in a new workbench view. The view
@@ -59,13 +71,15 @@ public class EclipsembgView extends ViewPart {
 	private TreeViewer viewer;
 	private DrillDownAdapter drillDownAdapter;
 	private Action actionNewDb;
-	private Action action2;
+	private Action actionGenerate;
 	private Action actionOpenConfView;
 	private Action doubleClickAction;
 	private NewDBConnectionDialog newDBConnectionDialog;
+	private ViewContentProvider viewContentProvider;
 
 	class TreeObject implements IAdaptable {
 		private String name;
+		private List<String> tableNames;
 		private TreeParent parent;
 
 		public TreeObject(String name) {
@@ -76,12 +90,24 @@ public class EclipsembgView extends ViewPart {
 			return name;
 		}
 
+		public void setName(String name) {
+			this.name = name;
+		}
+
 		public void setParent(TreeParent parent) {
 			this.parent = parent;
 		}
 
 		public TreeParent getParent() {
 			return parent;
+		}
+
+		public List<String> getTableNames() {
+			return tableNames;
+		}
+
+		public void setTableNames(List<String> tableNames) {
+			this.tableNames = tableNames;
 		}
 
 		public String toString() {
@@ -157,26 +183,13 @@ public class EclipsembgView extends ViewPart {
 		 * code, you will connect to a real model and expose its hierarchy.
 		 */
 		private void initialize() {
-			/*
-			TreeObject to1 = new TreeObject("Leaf 1");
-			TreeObject to2 = new TreeObject("Leaf 2");
-			TreeObject to3 = new TreeObject("Leaf 3");
-			TreeParent p1 = new TreeParent("Parent 1");
-			p1.addChild(to1);
-			p1.addChild(to2);
-			p1.addChild(to3);
-
-			TreeObject to4 = new TreeObject("Leaf 4");
-			TreeParent p2 = new TreeParent("Parent 2");
-			p2.addChild(to4);
-
-			TreeParent root = new TreeParent("Root");
-			root.addChild(p1);
-			root.addChild(p2);
-			*/
-			TreeParent root = new TreeParent("dbs");
-			
 			invisibleRoot = new TreeParent("");
+			TreeParent root = new TreeParent("dbs");
+			for (GeneratorConfig config : Constant.configList) {
+				TreeParent db = new TreeParent(DBUtil.getDbName(config));
+				root.addChild(db);
+			}
+
 			invisibleRoot.addChild(root);
 		}
 	}
@@ -199,8 +212,9 @@ public class EclipsembgView extends ViewPart {
 	 * The constructor.
 	 */
 	public EclipsembgView() {
-		GeneratorConfUtil.generateDefaultConfFile();//generate default config to dropin/eclipse-mbg dir
-		GeneratorConfUtil.refreshConfigs();//load configs
+		GeneratorConfUtil.generateDefaultConfFile();// generate default config
+													// to dropin/eclipse-mbg dir
+		GeneratorConfUtil.refreshConfigs();// load configs
 	}
 
 	/**
@@ -210,14 +224,14 @@ public class EclipsembgView extends ViewPart {
 	public void createPartControl(Composite parent) {
 		viewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		drillDownAdapter = new DrillDownAdapter(viewer);
-
-		viewer.setContentProvider(new ViewContentProvider());
+		viewContentProvider = new ViewContentProvider();
+		viewer.setContentProvider(viewContentProvider);
 		viewer.setInput(getViewSite());
 		viewer.setLabelProvider(new ViewLabelProvider());
-		
-		//create new db dialog
+
+		// create new db dialog
 		newDBConnectionDialog = new NewDBConnectionDialog(parent.getShell());
-		
+
 		// Create the help context id for the viewer's control
 		PlatformUI.getWorkbench().getHelpSystem().setHelp(viewer.getControl(), "eclipse-mbg.viewer");
 		getSite().setSelectionProvider(viewer);
@@ -225,7 +239,7 @@ public class EclipsembgView extends ViewPart {
 		hookContextMenu();
 		hookDoubleClickAction();
 		contributeToActionBars();
-		
+
 	}
 
 	private void hookContextMenu() {
@@ -250,11 +264,17 @@ public class EclipsembgView extends ViewPart {
 	private void fillLocalPullDown(IMenuManager manager) {
 		manager.add(actionNewDb);
 		manager.add(new Separator());
-		manager.add(action2);
+		manager.add(actionGenerate);
 	}
 
 	private void fillContextMenu(IMenuManager manager) {
-		manager.add(actionNewDb);
+		TreeSelection obj = (TreeSelection) viewer.getSelection();
+		
+		if (obj.getFirstElement() instanceof TreeParent && ((TreeParent) obj.getFirstElement()).getName().equals("dbs")) {
+			manager.add(actionNewDb);
+		} else {
+			manager.add(actionGenerate);
+		}
 		manager.add(new Separator());
 		drillDownAdapter.addNavigationActions(manager);
 		// Other plug-ins can contribute there actions here
@@ -263,7 +283,7 @@ public class EclipsembgView extends ViewPart {
 
 	private void fillLocalToolBar(IToolBarManager manager) {
 		manager.add(actionNewDb);
-		manager.add(action2);
+		manager.add(actionGenerate);
 		manager.add(actionOpenConfView);
 		manager.add(new Separator());
 		drillDownAdapter.addNavigationActions(manager);
@@ -272,7 +292,7 @@ public class EclipsembgView extends ViewPart {
 	private void makeActions() {
 		actionNewDb = new Action() {
 			public void run() {
-				//open add db connection shell
+				// open add db connection shell
 				newDBConnectionDialog.open("New DB connection");
 			}
 		};
@@ -281,20 +301,35 @@ public class EclipsembgView extends ViewPart {
 		actionNewDb.setImageDescriptor(
 				PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
 
-		action2 = new Action() {
+		actionGenerate = new Action() {
 			public void run() {
-				alert("Action 2 executed");
+				   List<String> warnings = new ArrayList<String>();
+				   boolean overwrite = true;
+				   Configuration config = new Configuration();
+				   
+				   //generate by config
+				   
+				   
+				   DefaultShellCallback callback = new DefaultShellCallback(overwrite);
+				   try {
+					MyBatisGenerator myBatisGenerator = new MyBatisGenerator(config, callback, warnings);
+					   myBatisGenerator.generate(null);
+				} catch (Exception e) {
+					
+					e.printStackTrace();
+				}
 			}
 		};
-		action2.setText("generate with dao and mapper");
-		action2.setToolTipText("generate with mapper.xml dao.java daoImpl.java");
-		action2.setImageDescriptor(
+		actionGenerate.setText("generate with dao and mapper");
+		actionGenerate.setToolTipText("generate with mapper.xml dao.java daoImpl.java");
+		actionGenerate.setImageDescriptor(
 				PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
 		actionOpenConfView = new Action() {
 			public void run() {
-				//open generatorConfView
+				// open generatorConfView
 				try {
-					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView("com.puyixiaowo.eclipsembg.views.GeneratorConfView");
+					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
+							.showView("com.puyixiaowo.eclipsembg.views.GeneratorConfView");
 				} catch (PartInitException e) {
 					e.printStackTrace();
 				}
@@ -304,12 +339,47 @@ public class EclipsembgView extends ViewPart {
 		actionOpenConfView.setToolTipText("edit generator config list");
 		actionOpenConfView.setImageDescriptor(
 				PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
-		
+
 		doubleClickAction = new Action() {
 			public void run() {
 				ISelection selection = viewer.getSelection();
 				Object obj = ((IStructuredSelection) selection).getFirstElement();
-				alert("Double-click detected on " + obj.toString());
+				try {
+					loadDbTables(obj.toString());
+				} catch (Exception e) {
+					alert("load tables error:" + e.getMessage());
+				}
+				
+				//expand tree
+				viewer.expandAll();
+			}
+
+			/*
+			 * 
+			 */
+			private void loadDbTables(String dbName) throws Exception {
+				if (!dbName.equals("dbs") && dbName != null) {
+					List<String> tabelNames = JDBCUtil.getTableNames(dbName);
+					if (tabelNames == null) {
+						return;
+					}
+					TreeParent treeParents = (TreeParent) viewContentProvider
+							.getChildren(viewContentProvider.invisibleRoot)[0];
+					TreeObject[] obj = treeParents.getChildren();
+					
+					for (Object treeParent : obj) {
+						if (treeParent instanceof TreeParent) {
+							if (((TreeParent)treeParent).getName().equals(dbName)) {
+								for (String tableName : tabelNames) {
+									TreeObject child = new TreeObject(tableName);
+									((TreeParent)treeParent).addChild(child);
+								}
+							}
+						}
+						
+					}
+				}
+
 			}
 		};
 	}
@@ -332,5 +402,5 @@ public class EclipsembgView extends ViewPart {
 	public void setFocus() {
 		viewer.getControl().setFocus();
 	}
-	
+
 }

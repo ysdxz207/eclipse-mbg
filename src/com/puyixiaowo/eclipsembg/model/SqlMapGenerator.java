@@ -1,11 +1,16 @@
 package com.puyixiaowo.eclipsembg.model;
 
-import java.util.List;
+import java.util.Properties;
 
-public class SqlMapGenerator extends BaseBean{
+import org.mybatis.generator.config.PropertyHolder;
 
-	public SqlMapGenerator(List<Attribute> attributes) {
-		this.setAttributes(attributes);
+public class SqlMapGenerator extends PropertyHolder{
+
+	public SqlMapGenerator(Properties properties) {
+		for (Object key : properties.keySet()) {
+			this.addProperty(key.toString(), properties.getProperty(key.toString()));
+		}
 	}
+
 
 }

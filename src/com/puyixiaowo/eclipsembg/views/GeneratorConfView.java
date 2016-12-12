@@ -25,8 +25,8 @@ import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
-import com.puyixiaowo.eclipsembg.conf.Constant;
-import com.puyixiaowo.eclipsembg.conf.GeneratorConfig;
+import com.puyixiaowo.eclipsembg.constants.Constant;
+import com.puyixiaowo.eclipsembg.model.GeneratorConfig;
 import com.puyixiaowo.eclipsembg.util.GeneratorConfUtil;
 
 /**
