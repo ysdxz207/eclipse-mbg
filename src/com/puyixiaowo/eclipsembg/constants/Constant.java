@@ -6,8 +6,12 @@ import java.util.List;
 import com.puyixiaowo.eclipsembg.model.GeneratorConfig;
 
 public class Constant {
-	public static final int WIDTH = 620;
-	public static final int HEIGHT = 320;
+	public static final int WIDTH_CONNECTION = 620;
+	public static final int HEIGHT_CONNECTION = 320;
+	
+	public static final int WIDTH_CONFIG= 800;
+	public static final int HEIGHT_CONFIG = 600;
+	
 	//default config file name
 	public static String DEFAULT_CONFIG_FILE_NAME = "generatorConfig.xml";
 	//config root directory

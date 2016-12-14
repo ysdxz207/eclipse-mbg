@@ -23,7 +23,9 @@ import org.mybatis.generator.config.JDBCConnectionConfiguration;
 import org.mybatis.generator.internal.JDBCConnectionFactory;
 
 import com.puyixiaowo.eclipsembg.constants.Constant;
+import com.puyixiaowo.eclipsembg.enums.ClassPathEntryEnum;
 import com.puyixiaowo.eclipsembg.enums.JdbcConnectionEnum;
+import com.puyixiaowo.eclipsembg.model.ClassPathEntry;
 import com.puyixiaowo.eclipsembg.model.Context;
 import com.puyixiaowo.eclipsembg.model.GeneratorConfig;
 import com.puyixiaowo.eclipsembg.model.JdbcConnection;
@@ -91,6 +93,7 @@ public class NewDBConnectionDialogHandler {
 		driverPathLabel.setText("DB driver:");
 		driverPathText = new Text(shell, SWT.BORDER);
 		driverPathText.setLayoutData(getGridData(SWT.FILL, 1));
+		driverPathText.setText(Constant.defaultConfig.getClassPathEntry().getProperty(ClassPathEntryEnum.LOCATION.name));
 		chooseDriverBtn = new Button(shell, SWT.NULL);
 		chooseDriverBtn.setText("choose driver...");
 		chooseDriverBtn.addListener(SWT.Selection, new Listener() {
@@ -99,7 +102,6 @@ public class NewDBConnectionDialogHandler {
 			public void handleEvent(Event event) {
 				// open choose file dialog
 				driverPathText.setText(fileDialog.open());
-				createJDBCConnection();
 			}
 		});
 
@@ -170,12 +172,14 @@ public class NewDBConnectionDialogHandler {
 		String driverClass = driverClassText.getText();
 		String userId = usernameText.getText();
 		String password = passwordText.getText();
+		String location = driverPathText.getText();
 		
 		config = new JDBCConnectionConfiguration();
 		config.setConnectionURL(connectionURL);
 		config.setDriverClass(driverClass);
 		config.setUserId(userId);
 		config.setPassword(password);
+		config.addProperty(ClassPathEntryEnum.LOCATION.name, location);
 		
 		JDBCConnectionFactory f = new JDBCConnectionFactory(config);
 		Connection conn = null;
@@ -214,6 +218,11 @@ public class NewDBConnectionDialogHandler {
 		Context context = new Context();
 		context.setJdbcConnection(jdbcConnection);
 		generatorConfig.setContext(context);
+		
+		//driver class path
+		ClassPathEntry classPathEntry = new ClassPathEntry();
+		classPathEntry.addProperty(ClassPathEntryEnum.LOCATION.name, config.getProperty(ClassPathEntryEnum.LOCATION.name));
+		generatorConfig.setClassPathEntry(classPathEntry);
 		GeneratorConfUtil.updateDefaultConfigFile(generatorConfig);
 		shell.dispose();//close shell
 	}

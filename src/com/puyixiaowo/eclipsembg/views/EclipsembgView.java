@@ -1,7 +1,5 @@
 package com.puyixiaowo.eclipsembg.views;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,9 +32,6 @@ import org.eclipse.ui.part.DrillDownAdapter;
 import org.eclipse.ui.part.ViewPart;
 import org.mybatis.generator.api.MyBatisGenerator;
 import org.mybatis.generator.config.Configuration;
-import org.mybatis.generator.config.Context;
-import org.mybatis.generator.config.ModelType;
-import org.mybatis.generator.exception.InvalidConfigurationException;
 import org.mybatis.generator.internal.DefaultShellCallback;
 
 import com.puyixiaowo.eclipsembg.constants.Constant;
@@ -303,9 +298,10 @@ public class EclipsembgView extends ViewPart {
 
 		actionGenerate = new Action() {
 			public void run() {
+					//run generator
 				   List<String> warnings = new ArrayList<String>();
 				   boolean overwrite = true;
-				   Configuration config = new Configuration();
+				   Configuration config = Constant.defaultConfig.toMybatisConfiguration();
 				   
 				   //generate by config
 				   

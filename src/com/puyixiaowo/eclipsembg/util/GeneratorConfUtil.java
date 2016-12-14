@@ -163,14 +163,24 @@ public class GeneratorConfUtil {
 	}
 
 	/**
-	 * 
+	 * parse xml object to properties
 	 * @return
 	 */
 	private static Properties parseProperties(XMLObject obj) {
 		Properties props = new Properties();
 		Map<String, String> attrMap = obj.getAttrs();
+		if (attrMap == null) {
+			return props;
+		}
 		for (String key : attrMap.keySet()) {
 			props.setProperty(key, attrMap.get(key));
+		}
+		if (obj.getChildTags("property").isEmpty()) {
+			return props;
+		}
+		//containts property tag
+		for (XMLObject xmlObj : obj.getChildTags("property")) {
+			props.setProperty(xmlObj.getAttr("name"), xmlObj.getAttr("value"));
 		}
 		return props;
 	}

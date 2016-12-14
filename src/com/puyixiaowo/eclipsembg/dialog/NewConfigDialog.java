@@ -4,11 +4,11 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import com.puyixiaowo.eclipsembg.constants.Constant;
-import com.puyixiaowo.eclipsembg.dialog.handler.NewDBConnectionDialogHandler;
+import com.puyixiaowo.eclipsembg.dialog.handler.NewConfigDialogHandler;
 
-public class NewDBConnectionDialog extends MBGDialog{
+public class NewConfigDialog extends MBGDialog{
 
-	public NewDBConnectionDialog(Shell parentShell) {
+	public NewConfigDialog(Shell parentShell) {
 		super(parentShell);
 	}
 	
@@ -17,9 +17,9 @@ public class NewDBConnectionDialog extends MBGDialog{
 		Shell shell = super.open(title);
 		Display display = shell.getParent().getDisplay();
 		
-		new NewDBConnectionDialogHandler(shell);//fill dialog
+		new NewConfigDialogHandler(shell);//fill dialog
 		
-		shell.setSize(Constant.WIDTH_CONNECTION, Constant.HEIGHT_CONNECTION);
+		shell.setSize(Constant.WIDTH_CONFIG, Constant.HEIGHT_CONFIG);
 		shell.setMinimumSize(500, 300);
 		super.centerDialog(shell);
 		

@@ -26,6 +26,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
 import com.puyixiaowo.eclipsembg.constants.Constant;
+import com.puyixiaowo.eclipsembg.dialog.NewConfigDialog;
 import com.puyixiaowo.eclipsembg.model.GeneratorConfig;
 import com.puyixiaowo.eclipsembg.util.GeneratorConfUtil;
 
@@ -54,6 +55,8 @@ public class GeneratorConfView extends ViewPart {
 	private TableViewer viewer;
 	private Action actionOpenConfView;
 	private Action doubleClickAction;
+	private Action actionNewConfig;
+	private NewConfigDialog newConfigDialog;
 
 	class ConfigObject extends GeneratorConfig implements IAdaptable {
 
@@ -61,7 +64,7 @@ public class GeneratorConfView extends ViewPart {
 		public <T> T getAdapter(Class<T> adapter) {
 			return null;
 		}
-		
+
 		@Override
 		public String toString() {
 			return this.getFileName();
@@ -71,8 +74,8 @@ public class GeneratorConfView extends ViewPart {
 
 	class ViewContentProvider implements IStructuredContentProvider {
 		List<? extends GeneratorConfig> configObjectList;
-		
-		public Object[] getElements(Object parent){
+
+		public Object[] getElements(Object parent) {
 			if (configObjectList == null) {
 				try {
 					init();
@@ -84,22 +87,22 @@ public class GeneratorConfView extends ViewPart {
 			}
 			return configObjectList.toArray();
 		}
-		
+
 		public List<? extends GeneratorConfig> getConfigObjectList() {
-			
+
 			return configObjectList;
 		}
 
 		public void setConfigObjectList(List<ConfigObject> configObjectList) {
 			this.configObjectList = configObjectList;
 		}
-		
-		private void init() throws IllegalAccessException, InvocationTargetException{
-			
-			configObjectList = Constant.configList == null || Constant.configList.size() == 0 ? GeneratorConfUtil.refreshConfigs() : Constant.configList;
-			System.out.println();
+
+		private void init() throws IllegalAccessException, InvocationTargetException {
+
+			configObjectList = Constant.configList == null || Constant.configList.size() == 0
+					? GeneratorConfUtil.refreshConfigs() : Constant.configList;
 		}
-		
+
 	}
 
 	/**
@@ -123,6 +126,10 @@ public class GeneratorConfView extends ViewPart {
 		// Create the help context id for the viewer's control
 		PlatformUI.getWorkbench().getHelpSystem().setHelp(viewer.getControl(), "eclipse-mbg.viewer");
 		getSite().setSelectionProvider(viewer);
+
+		// create new db dialog
+		newConfigDialog = new NewConfigDialog(parent.getShell());
+
 		makeActions();
 		hookContextMenu();
 		hookDoubleClickAction();
@@ -156,11 +163,13 @@ public class GeneratorConfView extends ViewPart {
 	private void fillContextMenu(IMenuManager manager) {
 		manager.add(new Separator());
 		// Other plug-ins can contribute there actions here
+		manager.add(actionNewConfig);
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 	}
 
 	private void fillLocalToolBar(IToolBarManager manager) {
 		manager.add(actionOpenConfView);
+		manager.add(actionNewConfig);
 		manager.add(new Separator());
 	}
 
@@ -173,6 +182,17 @@ public class GeneratorConfView extends ViewPart {
 		actionOpenConfView.setText("generator config");
 		actionOpenConfView.setToolTipText("edit generator config list");
 		actionOpenConfView.setImageDescriptor(
+				PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
+
+		////////
+		actionNewConfig = new Action() {
+			public void run() {
+				newConfigDialog.open("New config");
+			}
+		};
+		actionNewConfig.setText("New config");
+		actionNewConfig.setToolTipText("New config");
+		actionNewConfig.setImageDescriptor(
 				PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
 
 		doubleClickAction = new Action() {

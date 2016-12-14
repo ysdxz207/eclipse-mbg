@@ -4,7 +4,8 @@
   "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
 
 <generatorConfiguration>
-	<classPathEntry location="D:\javaDir\java\apache-maven-3.3.9\repository\mysql\mysql-connector-java\5.1.30\mysql-connector-java-5.1.30.jar" />
+	<classPathEntry
+		location="D:\javaDir\java\apache-maven-3.3.9\repository\mysql\mysql-connector-java\5.1.30\mysql-connector-java-5.1.30.jar" />
 
 	<context id="DB2Tables" targetRuntime="MyBatis3">
 		<jdbcConnection driverClass="com.mysql.jdbc.Driver"
@@ -12,7 +13,8 @@
 			password="root">
 		</jdbcConnection>
 
-		<javaTypeResolver>
+		<javaTypeResolver
+			type="org.mybatis.generator.internal.types.JavaTypeResolverDefaultImpl">
 			<property name="forceBigDecimals" value="false" />
 		</javaTypeResolver>
 
