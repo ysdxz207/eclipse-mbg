@@ -276,16 +276,17 @@ public class GeneratorConfUtil {
 			}
 
 			// table
-			List<XMLObject> tableObjList = contextObj.getAllChildTags("table");
-			
-			if (tableObjList != null) {
-				for (XMLObject xmlObject : tableObjList) {
-					xmlObject.remove();
-				}
-			}
 			
 			if (defaultConfig.getContext().getTables() != null) {
+				//delete tables
+				List<XMLObject> tableObjList = contextObj.getAllChildTags("table");
 				
+				if (tableObjList != null) {
+					for (XMLObject xmlObject : tableObjList) {
+						xmlObject.remove();
+					}
+				}
+				//add tables
 				for (int i = 0; i < defaultConfig.getContext().getTables().size(); i++) {
 					Table table = defaultConfig.getContext().getTables().get(i);
 					
