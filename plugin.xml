@@ -36,5 +36,18 @@
          </view>
       </perspectiveExtension>
    </extension>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="com.puyixiaowo.eclipsembg.editors.GeneratorConfigEditor"
+            default="false"
+            icon="icons/sample.gif"
+            id="com.puyixiaowo.eclipsembg.editors.GeneratorConfigEditor"
+            name="generator config editor">
+      </editor>
+   </extension>
+   <extension
+         point="org.eclipse.ui.newWizards">
+   </extension>
 
 </plugin>
