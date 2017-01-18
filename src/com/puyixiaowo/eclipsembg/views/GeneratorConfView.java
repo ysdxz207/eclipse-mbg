@@ -53,8 +53,9 @@ public class GeneratorConfView extends ViewPart {
 	public static final String ID = "com.puyixiaowo.eclipsembg.views.GeneratorConfView";
 
 	private TableViewer viewer;
-	private Action actionOpenConfView;
 	private Action doubleClickAction;
+	private Action actionRun;
+	private Action actionEditConfig;
 	private Action actionNewConfig;
 	private NewConfigDialog newConfigDialog;
 
@@ -163,28 +164,43 @@ public class GeneratorConfView extends ViewPart {
 	private void fillContextMenu(IMenuManager manager) {
 		manager.add(new Separator());
 		// Other plug-ins can contribute there actions here
-		manager.add(actionNewConfig);
+		manager.add(actionRun);
+		manager.add(actionEditConfig);
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 	}
 
 	private void fillLocalToolBar(IToolBarManager manager) {
-		manager.add(actionOpenConfView);
+		manager.add(actionRun);
+		manager.add(actionEditConfig);
 		manager.add(actionNewConfig);
 		manager.add(new Separator());
 	}
 
 	private void makeActions() {
-		actionOpenConfView = new Action() {
+		//run generator
+		actionRun = new Action() {
 			public void run() {
-
+				
 			}
 		};
-		actionOpenConfView.setText("generator config");
-		actionOpenConfView.setToolTipText("edit generator config list");
-		actionOpenConfView.setImageDescriptor(
+		actionRun.setText("run");
+		actionRun.setToolTipText("run generator with selected config");
+		actionRun.setImageDescriptor(
 				PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
-
-		////////
+		
+		//edit config
+		actionEditConfig = new Action() {
+			public void run() {
+				
+			}
+		};
+		actionEditConfig.setText("edit config");
+		actionEditConfig.setToolTipText("edit selected config");
+		actionEditConfig.setImageDescriptor(
+				PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
+		
+		
+		//open new config dialog
 		actionNewConfig = new Action() {
 			public void run() {
 				newConfigDialog.open("New config");
