@@ -10,12 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.beanutils.BeanUtils;
 import org.dom4j.DocumentException;
 import org.yong.util.file.xml.XMLObject;
 import org.yong.util.file.xml.XMLParser;
 
-import com.puyixiaowo.eclipsembg.constants.Constant;
+import com.puyixiaowo.eclipsembg.constants.Constants;
 import com.puyixiaowo.eclipsembg.enums.TableEnum;
 import com.puyixiaowo.eclipsembg.model.ClassPathEntry;
 import com.puyixiaowo.eclipsembg.model.Context;
@@ -27,7 +26,7 @@ import com.puyixiaowo.eclipsembg.model.JdbcConnection;
 import com.puyixiaowo.eclipsembg.model.SqlMapGenerator;
 import com.puyixiaowo.eclipsembg.model.Table;
 
-public class GeneratorConfUtil {
+public class GeneratorConfigUtil {
 	/**
 	 * generate default config file to dropin/eclipse-mbg dir
 	 * 
@@ -36,8 +35,8 @@ public class GeneratorConfUtil {
 	public static File generateDefaultConfFile() {
 
 		try {
-			InputStream input = GeneratorConfUtil.class.getResourceAsStream("/resources/generatorConfig.xml");
-			File file = new File(Constant.DEFAULT_CONFIG_FILE);
+			InputStream input = GeneratorConfigUtil.class.getResourceAsStream("/resources/generatorConfig.xml");
+			File file = new File(Constants.DEFAULT_CONFIG_FILE);
 			if (!file.exists()) {
 				file.getParentFile().mkdirs();
 				try {
@@ -60,8 +59,11 @@ public class GeneratorConfUtil {
 	 * @return
 	 */
 	public static List<GeneratorConfig> getGeneratorConfigs() {
-		List<File> files = getListFiles(Constant.CONF_DIR);
-		return getConfigsByFiles(files);
+		if (Constants.configList == null) {
+			List<File> files = getListFiles(Constants.CONF_DIR);
+			Constants.configList = getConfigsByFiles(files);
+		}
+		return Constants.configList;
 	}
 
 	/**
@@ -79,7 +81,7 @@ public class GeneratorConfUtil {
 
 		return list;
 	}
-
+	
 	/**
 	 * parse config file
 	 * 
@@ -146,20 +148,9 @@ public class GeneratorConfUtil {
 		return config;
 	}
 
-	/**
-	 * refresh config list
-	 * 
-	 * @return
-	 */
-	public static List<GeneratorConfig> refreshConfigs() {
-		Constant.configList = getGeneratorConfigs();
-		for (GeneratorConfig generatorConfig : Constant.configList) {
-			if (generatorConfig.getFileName().equals(Constant.DEFAULT_CONFIG_FILE_NAME)) {
-				Constant.defaultConfig = generatorConfig;
-				break;
-			}
-		}
-		return Constant.configList;
+	public static GeneratorConfig getDefaultConfig(){
+		
+		return getConfigByFilename(Constants.DEFAULT_CONFIG_FILE_NAME);
 	}
 
 	/**
@@ -212,72 +203,67 @@ public class GeneratorConfUtil {
 		return files;
 	}
 
+	
 	/**
-	 * update default config file in dropin/eclipse-mbg dir
+	 * update config file in dropin/eclipse-mbg dir
 	 */
-	public static void updateDefaultConfigFile(GeneratorConfig config) {
+	public static void updateConfigFile(GeneratorConfig config) {
 		if (config == null) {
 			return;
 		}
-
-		XMLParser parser = new XMLParser(Constant.DEFAULT_CONFIG_FILE);
+		String filepath = Constants.CONF_DIR + config.getFileName();
+		XMLParser parser = new XMLParser(filepath);
 		try {
-			GeneratorConfig defaultConfig = new GeneratorConfig();
-			defaultConfig.setClassPathEntry(Constant.defaultConfig.getClassPathEntry());
-			defaultConfig.setContext(Constant.defaultConfig.getContext());
-			defaultConfig.setFileName(Constant.defaultConfig.getFileName());
-
-			BeanUtils.copyProperties(defaultConfig, config);
 
 			XMLObject root = parser.parse();
 
 			// classPathEntry
 			XMLObject classPathEntryObj = root.getChildTag("classPathEntry", 0);
-			if (defaultConfig.getClassPathEntry() != null) {
-				addProperties(defaultConfig.getClassPathEntry().getProperties(), classPathEntryObj);
+			if (config.getClassPathEntry() != null) {
+				addProperties(config.getClassPathEntry().getProperties(), classPathEntryObj);
 			}
 
 			// context
 			XMLObject contextObj = root.getChildTag("context", 0);
-			if (defaultConfig.getContext() == null) {
-				saveParser(parser, root);//save file
+			if (config.getContext() == null) {
+				parser.transferRoot(root, new File(filepath), false);//save file
 				return;
 			}
-			addProperties(defaultConfig.getContext().getProperties(), contextObj);
+			addProperties(config.getContext().getProperties(), contextObj);
 
 			// jdbcConnection
 			XMLObject jdbcConnectionObj = contextObj.getChildTag("jdbcConnection", 0);
-			if (defaultConfig.getContext().getJdbcConnection() != null) {
-				addProperties(defaultConfig.getContext().getJdbcConnection().getProperties(), jdbcConnectionObj);
+			if (config.getContext().getJdbcConnection() != null) {
+				addProperties(config.getContext().getJdbcConnection().getProperties(), jdbcConnectionObj);
 			}
 
 			// javaTypeResolver
 			XMLObject javaTypeResolverObj = contextObj.getChildTag("javaTypeResolver", 0);
-			if (defaultConfig.getContext().getJavaTypeResolver() != null) {
-				addProperties(defaultConfig.getContext().getJavaTypeResolver().getProperties(), javaTypeResolverObj);
+			if (config.getContext().getJavaTypeResolver() != null) {
+				addProperties(config.getContext().getJavaTypeResolver().getProperties(), javaTypeResolverObj);
 			}
 
 			// javaModelGenerator
 			XMLObject javaModelGeneratorObj = contextObj.getChildTag("javaModelGenerator", 0);
-			if (defaultConfig.getContext().getJavaModelGenerator() != null) {
-				addProperties(defaultConfig.getContext().getJavaModelGenerator().getProperties(),
+			if (config.getContext().getJavaModelGenerator() != null) {
+				addProperties(config.getContext().getJavaModelGenerator().getProperties(),
 						javaModelGeneratorObj);
 			}
 			// sqlMapGenerator
 			XMLObject sqlMapGeneratorObj = contextObj.getChildTag("sqlMapGenerator", 0);
-			if (defaultConfig.getContext().getSqlMapGenerator() != null) {
-				addProperties(defaultConfig.getContext().getSqlMapGenerator().getProperties(), sqlMapGeneratorObj);
+			if (config.getContext().getSqlMapGenerator() != null) {
+				addProperties(config.getContext().getSqlMapGenerator().getProperties(), sqlMapGeneratorObj);
 			}
 			// javaClientGenerator
 			XMLObject javaClientGeneratorObj = contextObj.getChildTag("javaClientGenerator", 0);
-			if (defaultConfig.getContext().getJavaClientGenerator() != null) {
-				addProperties(defaultConfig.getContext().getJavaClientGenerator().getProperties(),
+			if (config.getContext().getJavaClientGenerator() != null) {
+				addProperties(config.getContext().getJavaClientGenerator().getProperties(),
 						javaClientGeneratorObj);
 			}
 
 			// table
 			
-			if (defaultConfig.getContext().getTables() != null) {
+			if (config.getContext().getTables() != null) {
 				//delete tables
 				List<XMLObject> tableObjList = contextObj.getAllChildTags("table");
 				
@@ -287,8 +273,8 @@ public class GeneratorConfUtil {
 					}
 				}
 				//add tables
-				for (int i = 0; i < defaultConfig.getContext().getTables().size(); i++) {
-					Table table = defaultConfig.getContext().getTables().get(i);
+				for (int i = 0; i < config.getContext().getTables().size(); i++) {
+					Table table = config.getContext().getTables().get(i);
 					
 					XMLObject tableObject = XMLParser.createNode(TableEnum.TAG_NAME.name, "",
 							attributesToMap(table.getProperties()));
@@ -297,15 +283,10 @@ public class GeneratorConfUtil {
 				}
 			}
 
-			saveParser(parser, root);//save file
+			parser.transferRoot(root, new File(filepath), false);//save file
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-	
-	private static void saveParser(XMLParser parser, XMLObject root) throws IOException{
-		parser.transferRoot(root, new File(Constant.DEFAULT_CONFIG_FILE), false);
-		refreshConfigs();//refresh configs
 	}
 
 	/**
@@ -336,6 +317,60 @@ public class GeneratorConfUtil {
 		for (Object key : properties.keySet()) {
 			xmlObj.addAttr(key.toString(), properties.getProperty(key.toString()));
 		}
+	}
+	
+	public static File addGeneratorConfig(GeneratorConfig config){
+		try {
+			String configFileName = config.getFileName();
+			File file = new File(Constants.CONF_DIR + configFileName);
+			if (!file.exists()) {
+				file.getParentFile().mkdirs();
+				try {
+					file.createNewFile();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				InputStream input = GeneratorConfigUtil.class.getResourceAsStream("/resources/generatorConfig.xml");
+				FileUtil.generateFileByInputStream(input, file);
+				
+			}
+			
+			updateConfigFile(config);
+			return file;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public static GeneratorConfig getConfigByFilename(String filename){
+		List<GeneratorConfig> configList = getGeneratorConfigs();
+		GeneratorConfig config = null;
+		for (GeneratorConfig generatorConfig :configList) {
+			if (generatorConfig.getFileName().equals(filename)) {
+				config = generatorConfig;
+				break;
+			}
+		}
+		return config;
+	}
+	
+	public static void deleteGeneratorConfig(String filename){
+		File file = new File(Constants.CONF_DIR + filename);
+		if (file.exists()) {
+			file.delete();
+		}
+	}
+	
+	public static boolean isGeneratorConfigExists(String filename){
+		return getConfigByFilename(filename) != null;
+	}
+	
+
+	public static void refreshGeneratorConfig() {
+		Constants.configList = null;
+		getGeneratorConfigs();
+		Constants.defaultConfig = getDefaultConfig();
 	}
 
 	public static void main(String[] args) {

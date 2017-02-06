@@ -1,16 +1,17 @@
 package com.puyixiaowo.eclipsembg.constants;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.puyixiaowo.eclipsembg.model.GeneratorConfig;
 
-public class Constant {
+public class Constants {
 	public static final int WIDTH_CONNECTION = 620;
 	public static final int HEIGHT_CONNECTION = 320;
 	
 	public static final int WIDTH_CONFIG= 800;
 	public static final int HEIGHT_CONFIG = 600;
+	
+	public static final String PROJECT_NAME = "com.puyixiaowo.mgb";
 	
 	//default config file name
 	public static String DEFAULT_CONFIG_FILE_NAME = "generatorConfig.xml";
@@ -21,13 +22,8 @@ public class Constant {
 	
 	public static final String SQL_SELECT_DBS_PATH = "classpath:resources/sql/sql_select_dbs.sql";
 	
-	
-	/*
-	 * generator config list
-	 */
-	public static List<GeneratorConfig> configList = new ArrayList<GeneratorConfig>();
-	/*
-	 * default generator config
-	 */
+	//config list
+	public static List<GeneratorConfig> configList;
+	//default config
 	public static GeneratorConfig defaultConfig;
 }

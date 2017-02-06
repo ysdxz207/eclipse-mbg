@@ -34,11 +34,10 @@ import org.mybatis.generator.api.MyBatisGenerator;
 import org.mybatis.generator.config.Configuration;
 import org.mybatis.generator.internal.DefaultShellCallback;
 
-import com.puyixiaowo.eclipsembg.constants.Constant;
 import com.puyixiaowo.eclipsembg.dialog.NewDBConnectionDialog;
 import com.puyixiaowo.eclipsembg.model.GeneratorConfig;
 import com.puyixiaowo.eclipsembg.util.DBUtil;
-import com.puyixiaowo.eclipsembg.util.GeneratorConfUtil;
+import com.puyixiaowo.eclipsembg.util.GeneratorConfigUtil;
 import com.puyixiaowo.eclipsembg.util.JDBCUtil;
 
 /**
@@ -178,9 +177,10 @@ public class EclipsembgView extends ViewPart {
 		 * code, you will connect to a real model and expose its hierarchy.
 		 */
 		private void initialize() {
+			List<GeneratorConfig> configList = GeneratorConfigUtil.getGeneratorConfigs();
 			invisibleRoot = new TreeParent("");
 			TreeParent root = new TreeParent("dbs");
-			for (GeneratorConfig config : Constant.configList) {
+			for (GeneratorConfig config : configList) {
 				TreeParent db = new TreeParent(DBUtil.getDbName(config));
 				root.addChild(db);
 			}
@@ -207,9 +207,7 @@ public class EclipsembgView extends ViewPart {
 	 * The constructor.
 	 */
 	public EclipsembgView() {
-		GeneratorConfUtil.generateDefaultConfFile();// generate default config
-													// to dropin/eclipse-mbg dir
-		GeneratorConfUtil.refreshConfigs();// load configs
+		GeneratorConfigUtil.generateDefaultConfFile();// generate default config to dropin/eclipse-mbg dir
 	}
 
 	/**
@@ -301,7 +299,7 @@ public class EclipsembgView extends ViewPart {
 					//run generator
 				   List<String> warnings = new ArrayList<String>();
 				   boolean overwrite = true;
-				   Configuration config = Constant.defaultConfig.toMybatisConfiguration();
+				   Configuration config = GeneratorConfigUtil.getDefaultConfig().toMybatisConfiguration();
 				   
 				   //generate by config
 				   

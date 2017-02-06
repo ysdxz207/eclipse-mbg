@@ -5,6 +5,12 @@ import java.util.Properties;
 import org.mybatis.generator.config.PropertyHolder;
 
 public class JavaClientGenerator extends PropertyHolder{
+	
+	
+
+	public JavaClientGenerator() {
+		super();
+	}
 
 	public JavaClientGenerator(Properties properties) {
 		for (Object key : properties.keySet()) {

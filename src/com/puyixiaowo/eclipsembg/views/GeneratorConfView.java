@@ -25,10 +25,9 @@ import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
-import com.puyixiaowo.eclipsembg.constants.Constant;
 import com.puyixiaowo.eclipsembg.dialog.NewConfigDialog;
 import com.puyixiaowo.eclipsembg.model.GeneratorConfig;
-import com.puyixiaowo.eclipsembg.util.GeneratorConfUtil;
+import com.puyixiaowo.eclipsembg.util.GeneratorConfigUtil;
 
 /**
  * This sample class demonstrates how to plug-in a new workbench view. The view
@@ -99,9 +98,7 @@ public class GeneratorConfView extends ViewPart {
 		}
 
 		private void init() throws IllegalAccessException, InvocationTargetException {
-
-			configObjectList = Constant.configList == null || Constant.configList.size() == 0
-					? GeneratorConfUtil.refreshConfigs() : Constant.configList;
+			configObjectList = GeneratorConfigUtil.getGeneratorConfigs();
 		}
 
 	}
@@ -110,9 +107,14 @@ public class GeneratorConfView extends ViewPart {
 	 * The constructor.
 	 */
 	public GeneratorConfView() {
-
+		GeneratorConfigUtil.generateDefaultConfFile();// generate default config to dropin/eclipse-mbg dir
+		GeneratorConfigUtil.refreshGeneratorConfig();
 	}
-
+	
+	public void refreshView(){
+		viewer.setContentProvider(new ViewContentProvider());
+	}
+	
 	/**
 	 * This is a callback that will allow us to create the viewer and initialize
 	 * it.
@@ -123,6 +125,7 @@ public class GeneratorConfView extends ViewPart {
 		viewer.setContentProvider(new ViewContentProvider());
 
 		viewer.setInput(getViewSite());
+		
 
 		// Create the help context id for the viewer's control
 		PlatformUI.getWorkbench().getHelpSystem().setHelp(viewer.getControl(), "eclipse-mbg.viewer");
@@ -170,14 +173,14 @@ public class GeneratorConfView extends ViewPart {
 	}
 
 	private void fillLocalToolBar(IToolBarManager manager) {
-		manager.add(actionRun);
-		manager.add(actionEditConfig);
+//		manager.add(actionRun);
+//		manager.add(actionEditConfig);
 		manager.add(actionNewConfig);
 		manager.add(new Separator());
 	}
 
 	private void makeActions() {
-		//run generator
+		// run generator
 		actionRun = new Action() {
 			public void run() {
 				
@@ -187,23 +190,26 @@ public class GeneratorConfView extends ViewPart {
 		actionRun.setToolTipText("run generator with selected config");
 		actionRun.setImageDescriptor(
 				PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
-		
-		//edit config
+
+		// edit config
 		actionEditConfig = new Action() {
 			public void run() {
+				ISelection selection = viewer.getSelection();
+				Object obj = ((IStructuredSelection) selection).getFirstElement();
+				GeneratorConfig config = GeneratorConfigUtil.getConfigByFilename(obj.toString());
 				
+				newConfigDialog.open("New config", config);
 			}
 		};
 		actionEditConfig.setText("edit config");
 		actionEditConfig.setToolTipText("edit selected config");
 		actionEditConfig.setImageDescriptor(
 				PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
-		
-		
-		//open new config dialog
+
+		// open new config dialog
 		actionNewConfig = new Action() {
 			public void run() {
-				newConfigDialog.open("New config");
+				newConfigDialog.open("New config", null);
 			}
 		};
 		actionNewConfig.setText("New config");

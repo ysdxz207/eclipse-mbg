@@ -22,14 +22,14 @@ import org.eclipse.swt.widgets.Text;
 import org.mybatis.generator.config.JDBCConnectionConfiguration;
 import org.mybatis.generator.internal.JDBCConnectionFactory;
 
-import com.puyixiaowo.eclipsembg.constants.Constant;
+import com.puyixiaowo.eclipsembg.constants.Constants;
 import com.puyixiaowo.eclipsembg.enums.ClassPathEntryEnum;
 import com.puyixiaowo.eclipsembg.enums.JdbcConnectionEnum;
 import com.puyixiaowo.eclipsembg.model.ClassPathEntry;
 import com.puyixiaowo.eclipsembg.model.Context;
 import com.puyixiaowo.eclipsembg.model.GeneratorConfig;
 import com.puyixiaowo.eclipsembg.model.JdbcConnection;
-import com.puyixiaowo.eclipsembg.util.GeneratorConfUtil;
+import com.puyixiaowo.eclipsembg.util.GeneratorConfigUtil;
 
 public class NewDBConnectionDialogHandler {
 
@@ -65,6 +65,7 @@ public class NewDBConnectionDialogHandler {
 	}
 
 	private void init() {
+		GeneratorConfig defaultConfig = GeneratorConfigUtil.getDefaultConfig();
 		
 		GridLayout gridLayout = new GridLayout(3, false);
 		gridLayout.horizontalSpacing = 10;
@@ -80,20 +81,20 @@ public class NewDBConnectionDialogHandler {
 		driverClassLabel.setText("driverClass:");
 		driverClassText = new Text(shell, SWT.BORDER);
 		driverClassText.setLayoutData(getGridData(SWT.FILL, 2));
-		driverClassText.setText(Constant.defaultConfig.getContext().getJdbcConnection().getProperty(JdbcConnectionEnum.DRIVER_CLASS.name));
+		driverClassText.setText(defaultConfig.getContext().getJdbcConnection().getProperty(JdbcConnectionEnum.DRIVER_CLASS.name));
 		//-----url
 		urlLabel = new Label(shell, SWT.NULL);
 		urlLabel.setText("url:");
 		urlText = new Text(shell, SWT.BORDER);
 		urlText.setLayoutData(getGridData(SWT.FILL, 2));
-		urlText.setText(Constant.defaultConfig.getContext().getJdbcConnection().getProperty(JdbcConnectionEnum.CONNECTION_URL.name));
+		urlText.setText(defaultConfig.getContext().getJdbcConnection().getProperty(JdbcConnectionEnum.CONNECTION_URL.name));
 		
 		//-----driver
 		driverPathLabel = new Label(shell, SWT.NULL);
 		driverPathLabel.setText("DB driver:");
 		driverPathText = new Text(shell, SWT.BORDER);
 		driverPathText.setLayoutData(getGridData(SWT.FILL, 1));
-		driverPathText.setText(Constant.defaultConfig.getClassPathEntry().getProperty(ClassPathEntryEnum.LOCATION.name));
+		driverPathText.setText(defaultConfig.getClassPathEntry().getProperty(ClassPathEntryEnum.LOCATION.name));
 		chooseDriverBtn = new Button(shell, SWT.NULL);
 		chooseDriverBtn.setText("choose driver...");
 		chooseDriverBtn.addListener(SWT.Selection, new Listener() {
@@ -158,10 +159,10 @@ public class NewDBConnectionDialogHandler {
 		});
 		
 		usernameText.setText(
-				Constant.defaultConfig.getContext().getJdbcConnection().getProperty(JdbcConnectionEnum.USER_ID.name));
+				defaultConfig.getContext().getJdbcConnection().getProperty(JdbcConnectionEnum.USER_ID.name));
 
 		passwordText.setText(
-				Constant.defaultConfig.getContext().getJdbcConnection().getProperty(JdbcConnectionEnum.PASSWORD.name));
+				defaultConfig.getContext().getJdbcConnection().getProperty(JdbcConnectionEnum.PASSWORD.name));
 	}
 	/**
 	 * test jdbc connection
@@ -208,6 +209,7 @@ public class NewDBConnectionDialogHandler {
 		}
 		//save config info to generatorConfig.xml
 		GeneratorConfig generatorConfig = new GeneratorConfig();
+		generatorConfig.setFileName(Constants.DEFAULT_CONFIG_FILE_NAME);
 		Properties props = new Properties();
 		props.setProperty(JdbcConnectionEnum.CONNECTION_URL.name, config.getConnectionURL());
 		props.setProperty(JdbcConnectionEnum.DRIVER_CLASS.name, config.getDriverClass());
@@ -223,7 +225,7 @@ public class NewDBConnectionDialogHandler {
 		ClassPathEntry classPathEntry = new ClassPathEntry();
 		classPathEntry.addProperty(ClassPathEntryEnum.LOCATION.name, config.getProperty(ClassPathEntryEnum.LOCATION.name));
 		generatorConfig.setClassPathEntry(classPathEntry);
-		GeneratorConfUtil.updateDefaultConfigFile(generatorConfig);
+		GeneratorConfigUtil.updateConfigFile(generatorConfig);
 		shell.dispose();//close shell
 	}
 	/**

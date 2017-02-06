@@ -66,7 +66,7 @@ public class GeneratorConfig {
 	 */
 	public Configuration toMybatisConfiguration() {
 		Configuration conf = new Configuration();
-
+		
 		org.mybatis.generator.config.Context context = new org.mybatis.generator.config.Context(ModelType.FLAT);
 
 		// plugin
@@ -211,5 +211,6 @@ public class GeneratorConfig {
 
 		return conf;
 	}
-
+	
+	
 }

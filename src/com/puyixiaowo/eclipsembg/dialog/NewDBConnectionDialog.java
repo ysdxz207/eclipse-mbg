@@ -3,7 +3,7 @@ package com.puyixiaowo.eclipsembg.dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
-import com.puyixiaowo.eclipsembg.constants.Constant;
+import com.puyixiaowo.eclipsembg.constants.Constants;
 import com.puyixiaowo.eclipsembg.dialog.handler.NewDBConnectionDialogHandler;
 
 public class NewDBConnectionDialog extends MBGDialog{
@@ -19,7 +19,7 @@ public class NewDBConnectionDialog extends MBGDialog{
 		
 		new NewDBConnectionDialogHandler(shell);//fill dialog
 		
-		shell.setSize(Constant.WIDTH_CONNECTION, Constant.HEIGHT_CONNECTION);
+		shell.setSize(Constants.WIDTH_CONNECTION, Constants.HEIGHT_CONNECTION);
 		shell.setMinimumSize(500, 300);
 		super.centerDialog(shell);
 		

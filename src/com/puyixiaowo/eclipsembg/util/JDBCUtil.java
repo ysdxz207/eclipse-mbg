@@ -4,7 +4,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.puyixiaowo.eclipsembg.constants.Constant;
+import com.puyixiaowo.eclipsembg.constants.Constants;
 import com.puyixiaowo.eclipsembg.constants.Sql;
 import com.puyixiaowo.eclipsembg.enums.JdbcConnectionEnum;
 import com.puyixiaowo.eclipsembg.model.GeneratorConfig;
@@ -39,7 +39,9 @@ public class JDBCUtil {
 	 * @return
 	 */
 	private static GeneratorConfig getConfigByDBName(String dbName) {
-		for (GeneratorConfig config : Constant.configList) {
+		List<GeneratorConfig> configList = GeneratorConfigUtil.getGeneratorConfigs();
+		
+		for (GeneratorConfig config : configList) {
 			String name = DBUtil.getDbName(config);
 			if (name.equals(dbName)) {
 				return config;
