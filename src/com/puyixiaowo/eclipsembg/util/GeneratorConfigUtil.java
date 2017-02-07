@@ -347,7 +347,7 @@ public class GeneratorConfigUtil {
 		List<GeneratorConfig> configList = getGeneratorConfigs();
 		GeneratorConfig config = null;
 		for (GeneratorConfig generatorConfig :configList) {
-			if (generatorConfig.getFileName().equals(filename)) {
+			if (filename.equals(generatorConfig.getFileName())) {
 				config = generatorConfig;
 				break;
 			}
@@ -372,6 +372,26 @@ public class GeneratorConfigUtil {
 		getGeneratorConfigs();
 		Constants.defaultConfig = getDefaultConfig();
 	}
+	
+	/**
+	 * 
+	 * @param config
+	 * @param text
+	 * @return
+	 */
+	public static Table getTableByTableName(GeneratorConfig config, String text) {
+		Table table = null;
+		if (config != null) {
+			List<Table> tables = config.getContext().getTables();
+			for (Table t : tables) {
+				if (text.equals(t.getProperty(TableEnum.tableName.name))) {
+					table = t;
+					break;
+				}
+			}
+		}
+		return table;
+	}
 
 	public static void main(String[] args) {
 		File file = new File(
@@ -391,5 +411,7 @@ public class GeneratorConfigUtil {
 		 */
 
 	}
+
+	
 
 }

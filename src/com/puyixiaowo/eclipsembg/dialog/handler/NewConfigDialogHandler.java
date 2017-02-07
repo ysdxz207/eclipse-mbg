@@ -1,6 +1,7 @@
 package com.puyixiaowo.eclipsembg.dialog.handler;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -13,6 +14,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.MenuDetectEvent;
 import org.eclipse.swt.events.MenuDetectListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -41,6 +43,7 @@ import com.puyixiaowo.eclipsembg.enums.ContextEnum;
 import com.puyixiaowo.eclipsembg.enums.JavaClientGeneratorEnum;
 import com.puyixiaowo.eclipsembg.enums.JavaModelGeneratorEnum;
 import com.puyixiaowo.eclipsembg.enums.SqlMapGeneratorEnum;
+import com.puyixiaowo.eclipsembg.enums.TableEnum;
 import com.puyixiaowo.eclipsembg.model.ClassPathEntry;
 import com.puyixiaowo.eclipsembg.model.Context;
 import com.puyixiaowo.eclipsembg.model.GeneratorConfig;
@@ -54,6 +57,7 @@ public class NewConfigDialogHandler {
 
 	private Shell shell;
 	private boolean isNew = false;
+	private GeneratorConfig config;
 	// filename
 	private Label fileNameLabel;
 	private Text fileNameText;
@@ -75,7 +79,9 @@ public class NewConfigDialogHandler {
 	private Label javaClientTargetProjectLabel;
 	private Text javaClientTargetPackageText;
 	private Text javaClientTargetProjectText;
-	//table edit
+	//table
+	private Table table;
+	// table edit
 	private Label tableNameLabel;
 	private Text tableNameText;
 	private Label domainObjectNameLable;
@@ -84,22 +90,28 @@ public class NewConfigDialogHandler {
 	private Button enableCountByExampleRadio0;
 	private Button enableUpdateByExampleRadio1;
 	private Button enableUpdateByExampleRadio0;
-	
+	private Button enableDeleteByExampleRadio1;
+	private Button enableDeleteByExampleRadio0;
+	private Button enableSelectByExampleRadio1;
+	private Button enableSelectByExampleRadio0;
+	private Button selectByExampleQueryIdRadio1;
+	private Button selectByExampleQueryIdRadio0;
 
 	private Button testUrlBtn;
 	private Button createBtn;
 
 	public NewConfigDialogHandler(Shell shell, GeneratorConfig config) {
 		this.shell = shell;
+		this.config = config;
 
-		fill(config);
+		fill();
 	}
 
-	private void fill(GeneratorConfig config) {
-		init(config);
+	private void fill() {
+		init();
 	}
 
-	private void init(GeneratorConfig config) {
+	private void init() {
 
 		if (config == null) {
 			isNew = true;
@@ -179,10 +191,10 @@ public class NewConfigDialogHandler {
 				config.getContext().getJavaClientGenerator().getProperty(JavaClientGeneratorEnum.TARGET_PROJECT.name));
 
 		// -----tables
-		Group tableGroup = newGroup("tables[double click to edit]", 6);
+		Group tableGroup = newGroup("tables[double click to edit]", 4);
 		final List<com.puyixiaowo.eclipsembg.model.Table> defaultTables = config.getContext().getTables();
 
-		final Table table = new Table(tableGroup,
+		table = new Table(tableGroup,
 				SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.BORDER | SWT.CHECK | SWT.MULTI);
 		table.setLayout(new GridLayout(3, false));
 
@@ -202,7 +214,7 @@ public class NewConfigDialogHandler {
 		table.addListener(SWT.MouseDoubleClick, new Listener() {
 			public void handleEvent(Event event) {
 				TableItem item = table.getItem(event.index);
-				System.out.println(item.getText());
+				fillTableData(item.getText());
 			}
 		});
 		// context menu
@@ -213,36 +225,94 @@ public class NewConfigDialogHandler {
 			}
 		});
 		
+		//shell.setLayout(new FillLayout());
 		// edit table
-		final Composite editTableContainer = new Composite(tableGroup,  SWT.BORDER);
+		final ScrolledComposite sc = new ScrolledComposite(shell, SWT.V_SCROLL | SWT.BORDER);
 		
-		GridLayout gridLayoutTableContainer = new GridLayout(6, false);
-		gridLayoutTableContainer.horizontalSpacing = 10;
-		gridLayoutTableContainer.verticalSpacing = 14;
-		gridLayoutTableContainer.marginTop = 12;
-		gridLayoutTableContainer.marginBottom = 12;
-		gridLayoutTableContainer.marginLeft = 12;
-		gridLayoutTableContainer.marginRight = 12;
-
-		editTableContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		sc.setExpandHorizontal(true);
+		sc.setExpandVertical(true);
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, false, true, 1, 1);
+		gd.heightHint = 200;
+		sc.setLayoutData(gd);
+		final Composite editTableContainer = new Composite(sc, SWT.NONE);
+		sc.setContent(editTableContainer);
+		
+		GridLayout gridLayoutTableContainer = new GridLayout();
+		gridLayoutTableContainer.numColumns = 2;
 		editTableContainer.setLayout(gridLayoutTableContainer);
 		tableNameLabel = new Label(editTableContainer, SWT.NULL);
 		tableNameLabel.setText("table name:");
-		tableNameText = new Text(editTableContainer,  SWT.BORDER);
+		tableNameText = new Text(editTableContainer, SWT.BORDER);
 		domainObjectNameLable = new Label(editTableContainer, SWT.NULL);
 		domainObjectNameLable.setText("domainObjectName:");
-		domainObjectNameText = new Text(editTableContainer,  SWT.BORDER);
-		//Group enableCountByExampleRadioGroup = newGroup("enableCountByExample", editTableContainer);
-		enableCountByExampleRadio1 = new Button(editTableContainer, SWT.RADIO);
+		domainObjectNameText = new Text(editTableContainer, SWT.BORDER);
+		
+		
+		Group groupByExample = newGroup("enable by example", editTableContainer);
+		GridLayout gridLayoutExample = new GridLayout(5, false);
+		gridLayoutExample.horizontalSpacing = 10;
+		gridLayoutExample.verticalSpacing = 14;
+		groupByExample.setLayout(gridLayoutExample);
+		GridData gridDataGroupByExample = new GridData();
+		gridDataGroupByExample.horizontalSpan = 5;
+		groupByExample.setLayoutData(gridDataGroupByExample);
+
+		Group groupCount = newGroup("count", groupByExample);
+		GridLayout gridLayoutCount = new GridLayout(1, false);
+		gridLayoutCount.horizontalSpacing = 10;
+		gridLayoutCount.verticalSpacing = 14;
+		groupCount.setLayout(gridLayoutCount);
+		enableCountByExampleRadio1 = new Button(groupCount, SWT.RADIO);
 		enableCountByExampleRadio1.setText("true");
-		enableCountByExampleRadio0 = new Button(editTableContainer, SWT.RADIO);
+		enableCountByExampleRadio0 = new Button(groupCount, SWT.RADIO);
 		enableCountByExampleRadio0.setText("false");
-		
-		enableUpdateByExampleRadio1 = new Button(editTableContainer, SWT.RADIO);
+		enableCountByExampleRadio0.setSelection(true);
+
+		Group groupUpdate = newGroup("update", groupByExample);
+		GridLayout gridLayoutUpdate = new GridLayout(1, false);
+		gridLayoutUpdate.horizontalSpacing = 10;
+		gridLayoutUpdate.verticalSpacing = 14;
+		groupUpdate.setLayout(gridLayoutUpdate);
+		enableUpdateByExampleRadio1 = new Button(groupUpdate, SWT.RADIO);
 		enableUpdateByExampleRadio1.setText("true");
-		enableUpdateByExampleRadio0 = new Button(editTableContainer, SWT.RADIO);
+		enableUpdateByExampleRadio0 = new Button(groupUpdate, SWT.RADIO);
 		enableUpdateByExampleRadio0.setText("false");
+		enableUpdateByExampleRadio0.setSelection(true);
+
+		Group groupDelete = newGroup("delete", groupByExample);
+		GridLayout gridLayoutDelete = new GridLayout(1, false);
+		gridLayoutDelete.horizontalSpacing = 10;
+		gridLayoutDelete.verticalSpacing = 14;
+		groupDelete.setLayout(gridLayoutDelete);
+		enableDeleteByExampleRadio1 = new Button(groupDelete, SWT.RADIO);
+		enableDeleteByExampleRadio1.setText("true");
+		enableDeleteByExampleRadio0 = new Button(groupDelete, SWT.RADIO);
+		enableDeleteByExampleRadio0.setText("false");
+		enableDeleteByExampleRadio0.setSelection(true);
+
+		Group groupSelect = newGroup("select", groupByExample);
+		GridLayout gridLayoutSelect = new GridLayout(1, false);
+		gridLayoutSelect.horizontalSpacing = 10;
+		gridLayoutSelect.verticalSpacing = 14;
+		groupSelect.setLayout(gridLayoutSelect);
+		enableSelectByExampleRadio1 = new Button(groupSelect, SWT.RADIO);
+		enableSelectByExampleRadio1.setText("true");
+		enableSelectByExampleRadio0 = new Button(groupSelect, SWT.RADIO);
+		enableSelectByExampleRadio0.setText("false");
+		enableSelectByExampleRadio0.setSelection(true);
+
+		Group groupSelectQueryId = newGroup("select queryId ", groupByExample);
+		GridLayout gridLayoutSelectQueryId = new GridLayout(1, false);
+		gridLayoutSelectQueryId.horizontalSpacing = 10;
+		gridLayoutSelectQueryId.verticalSpacing = 14;
+		groupSelectQueryId.setLayout(gridLayoutSelectQueryId);
+		selectByExampleQueryIdRadio1 = new Button(groupSelectQueryId, SWT.RADIO);
+		selectByExampleQueryIdRadio1.setText("true");
+		selectByExampleQueryIdRadio0 = new Button(groupSelectQueryId, SWT.RADIO);
+		selectByExampleQueryIdRadio0.setText("false");
+		selectByExampleQueryIdRadio0.setSelection(true);
 		
+		sc.setMinSize(editTableContainer.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 
 		// -----test url btn
 		testUrlBtn = new Button(shell, SWT.PUSH);
@@ -281,6 +351,65 @@ public class NewConfigDialogHandler {
 			}
 		});
 	}
+	
+	/**
+	 * fill table data
+	 * @param text
+	 */
+	protected void fillTableData(String text) {
+		tableNameText.setText(text);
+		//select table by tablename
+		com.puyixiaowo.eclipsembg.model.Table table = GeneratorConfigUtil.getTableByTableName(config, text);
+		
+		domainObjectNameText.setText(table.getProperty(TableEnum.domainObjectName.name));
+		
+		String enableCountByExample = table.getProperty(TableEnum.enableCountByExample.name);
+		if (enableCountByExample.equals("true")) {
+			enableCountByExampleRadio1.setSelection(true);
+			enableCountByExampleRadio0.setSelection(false);
+		} else {
+			enableCountByExampleRadio0.setSelection(true);
+			enableCountByExampleRadio1.setSelection(false);
+		}
+		
+		String enableUpdateByExample = table.getProperty(TableEnum.enableUpdateByExample.name);
+		if (enableUpdateByExample.equals("true")) {
+			enableUpdateByExampleRadio1.setSelection(true);
+			enableUpdateByExampleRadio0.setSelection(false);
+		} else {
+			enableUpdateByExampleRadio0.setSelection(true);
+			enableUpdateByExampleRadio1.setSelection(false);
+		}
+		
+		String enableDeleteByExample = table.getProperty(TableEnum.enableDeleteByExample.name);
+		if (enableDeleteByExample.equals("true")) {
+			enableDeleteByExampleRadio1.setSelection(true);
+			enableDeleteByExampleRadio0.setSelection(false);
+		} else {
+			enableDeleteByExampleRadio0.setSelection(true);
+			enableDeleteByExampleRadio1.setSelection(false);
+		}
+		
+		String enableSelectByExample = table.getProperty(TableEnum.enableSelectByExample.name);
+		if (enableSelectByExample.equals("true")) {
+			enableSelectByExampleRadio1.setSelection(true);
+			enableSelectByExampleRadio0.setSelection(false);
+		} else {
+			enableSelectByExampleRadio0.setSelection(true);
+			enableSelectByExampleRadio1.setSelection(false);
+		}
+		
+		String selectByExampleQueryId = table.getProperty(TableEnum.selectByExampleQueryId.name);
+		if (selectByExampleQueryId.equals("true")) {
+			selectByExampleQueryIdRadio1.setSelection(true);
+			selectByExampleQueryIdRadio0.setSelection(false);
+		} else {
+			selectByExampleQueryIdRadio0.setSelection(true);
+			selectByExampleQueryIdRadio1.setSelection(false);
+		}
+		
+		
+	}
 
 	private void createConfig() {
 		String filename = fileNameText.getText();
@@ -294,6 +423,8 @@ public class NewConfigDialogHandler {
 		String sqlMapTargetProject = sqlMapTargetProjectText.getText();
 		String javaClientTargetPackage = javaClientTargetPackageText.getText();
 		String javaClientTargetProject = javaClientTargetProjectText.getText();
+		TableItem [] tableItems = table.getItems();
+		
 
 		final GeneratorConfig config = new GeneratorConfig();
 
@@ -321,6 +452,14 @@ public class NewConfigDialogHandler {
 		javaClientGenerator.addProperty(JavaClientGeneratorEnum.TARGET_PACKAGE.name, javaClientTargetPackage);
 		javaClientGenerator.addProperty(JavaClientGeneratorEnum.TARGET_PROJECT.name, javaClientTargetProject);
 		context.setJavaClientGenerator(javaClientGenerator);
+		
+		List<com.puyixiaowo.eclipsembg.model.Table> tables = new ArrayList<com.puyixiaowo.eclipsembg.model.Table>();
+		for (TableItem tableItem : tableItems) {
+			com.puyixiaowo.eclipsembg.model.Table t = new com.puyixiaowo.eclipsembg.model.Table();
+			//t.addProperty(name, value);
+			tables.add(t);
+		}
+		context.setTables(tables);
 
 		config.setContext(context);
 
@@ -436,7 +575,7 @@ public class NewConfigDialogHandler {
 
 		return group;
 	}
-	
+
 	/**
 	 * 创建group
 	 * 

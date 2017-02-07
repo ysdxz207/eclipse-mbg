@@ -10,6 +10,9 @@ public class Table extends PropertyHolder {
 	private List<ColumnOverride> columnOverrides;
 	private List<IgnoredColumn> ignoredColumns;
 	private int pos;
+	
+	public Table() {
+	}
 
 	public Table(Properties properties, int i) {
 		for (Object key : properties.keySet()) {
